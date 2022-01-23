@@ -1,0 +1,17 @@
+DM<-read.csv(choose.files(caption = "Select csv",multi = FALSE))
+DM_reg<-lm(Outcome~Pregnancies+Glucose+BloodPressure+BMI+DiabetesPedigreeFunction,data = DM,family="binomial")
+summary(DM_reg)
+
+predicted_DM<-as.data.frame(DM_reg$fitted.values)
+residual<-as.data.frame(DM_reg$residuals)
+fitted_DM<-cbind(DM,predicted_DM,residual)
+
+root_sq_error<-summary(DM_reg)$sigma 
+root_sq_error/mean(DM$Outcome)
+summary(DM_reg)$r.sq
+
+null <- DM_reg$null.deviance/-2
+proposed <- DM_reg$deviance/-2
+(null - proposed) / null
+
+confint(adv_lm)

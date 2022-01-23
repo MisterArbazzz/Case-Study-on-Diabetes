@@ -1,0 +1,44 @@
+DM<-read.csv(choose.files(caption = "Select csv",multi = FALSE))
+head(DM)
+
+# DM[DM$Outcome == 1,]$Outcome <- "Diabetic"
+# DM[DM$Outcome == 0,]$Outcome <- "Non Diabetic"
+
+#DM$Outcome <- ifelse(test=DM$Outcome == 0, yes ="Diabetic", no ="Non diabetic")
+DM$Outcome <- as.factor(DM$Outcome)
+
+str(DM)
+#is.na(DM)
+nrow(DM)
+
+# xtabs(~ Outcome + Age, data=DM)
+
+DM_reg<-glm(Outcome~Pregnancies+Glucose+BloodPressure+BMI+DiabetesPedigreeFunction,data = DM,family="binomial")
+summary(DM_reg)
+
+null <- DM_reg$null.deviance/-2
+proposed <- DM_reg$deviance/-2
+
+## McFadden's Pseudo R^2 = [ LL(Null) - LL(Proposed) ] / LL(Null)
+(null - proposed) / null
+
+predicted_data <- data.frame(
+  predicted_diabetes=DM_reg$fitted.values,
+  Original_outcome=DM$Outcome)
+
+# predicted_data$Original_outcome <- as.factor(predicted_data$Original_outcome)
+str(predicted_data)
+
+predicted_data$Original_outcome <- ifelse(test=predicted_data$Original_outcome == 0, yes ="Not Diabetic", no ="diabetic")
+
+#predicted_data[predicted_data$predicted_diabetes >= 0.5,]$predicted_diabetes <- "Diabetic"
+#predicted_data[predicted_data$predicted_diabetes < 0.5,]$predicted_diabetes <- "Non Diabetic"
+
+predicted_data <- predicted_data[
+  order(predicted_data$predicted_diabetes, decreasing=FALSE),]
+predicted_data$rank <- 1:nrow(predicted_data)
+
+ggplot(data=predicted_data, aes(x=rank, y=predicted_diabetes)) +
+  geom_point(aes(color=Original_outcome), alpha=1, shape=4, stroke=2) +
+  xlab("Ranks") +
+  ylab("Predicted probability of getting diabetes")
